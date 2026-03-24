@@ -10,47 +10,78 @@
     </head>
     <body class="overall_page">
 
+        <!-- Header Image / Logo for the game -->
         <header>
             <img class="title" src="Images/pixil-frame-0.png" alt="Trivia Blast Header"></img>
         </header>
         
 
-        <div class = "btn">
+        <div id="welcome-screen" class="btn">
+            <div class="selector-container">
+                <label for="category-select">Choose a Topic:</label>
+                <select id="category-select">
+                    <option value="">Any Category</option>
+                    <option value="9">General Knowledge</option>
+                    <option value="11">Movies</option>
+                    <option value="12">Music</option>
+                    <option value="15">Video Games</option>
+                    <option value="17">Science & Nature</option>
+                    <option value="23">History</option>
+                </select>
+                <select id="difficulty-select">Choose a difficulty</select>
+                    <option value></option>
+                    <option value></option>
+                    <option value></option>
+            </div>
             <button id="btn1" onclick= initQuiz();>PLAY</button>
         </div>
 
-        <div class="bodyForGame">
 
 
 
-        <div class="start-container">
-            <div id="score-container">
-                <p>Score: <span id="score">0</span></p>
+        <!--Code for the container the actual game is played in-->
+        <div id="game-container" style="display:none;">
+            <div class="start-container">
+                
+                <div id="timer-container">
+                    <p>Time Remaining: <span id="timer">15</span> seconds</p>
+                </div>
+                <div id="score-container">
+                    <p>Score: <span id="score">0</span></p>
+                </div>
             </div>
 
-            <div id="lives-container">
-                <p>Lives: <span id="lives">3</span></p>
-            </div>
+            <main class="quiz-container">
+                <div class="question">
+                    <h2>Waiting for Question 1</h2>
+                </div>
+            
+                <div class="answers">
+                    <button class="answer-btn">..</button>
+                    <button class="answer-btn">..</button>
+                    <button class="answer-btn">..</button>
+                    <button class="answer-btn">..</button>
+                </div>
+            </main>
 
-            <div id="timer-container">
-                <p>Time Remaining: <span id="timer">15</span> seconds</p>
+            <div class="start-container">
+                <div id="lives-container">
+                    <p>Lives: <img id="lives" src="Images/HeartFrame1.png"></img></p>
+                </div>
             </div>
         </div>
+        
 
-
-        <main class="quiz-container">
-            <div class="question">
-              <h2>What is the capital of France?</h2>
+        <!-- We want to hide this end game content to appear only when the game is over -->
+        <div id="game-over-container" style="display:none;">
+            <div class="final-scores-container">
+                <h2> Game Over and Nice Try!</h2>
+                <p> Here is your scores:</p>
+                    <p id="final-score">Final Score: </p>
+                    <p id="questions-correct">Questions Correct: </p>   
+                    <p id="high-score"> Personal Best: 0 </p>
+                    <button id="restart-btn" onclick="location.reload()">Play Again</button>
             </div>
-            
-            <div class="answers">
-              <button class="answer-btn">A. Berlin</button>
-              <button class="answer-btn">B. Madrid</button>
-              <button class="answer-btn">C. Paris</button>
-              <button class="answer-btn">D. Rome</button>
-            </div>
-            
-        </main>
         </div>
     </body>
 </html>

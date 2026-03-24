@@ -5,29 +5,40 @@ let questions = [];
 let buttonClicks = 0;
 let startTime = Date.now();
 let timerInterval;
+let correct_answer_noise = new Audio("Sounds/correctanswer.wav");
+let wrong_answer_noise = new Audio("Sounds/wronganswer.mp3");
+let game_over_noise = new Audio("Sounds/gameover.wav");
+let streak = 0;
+let questionsAnswered = 0;
+
 
 /*Initialize the quiz, fetch the questions and answer from the api and call displayQuestionAndAnswers */
 async function initQuiz() {
-  document.getElementById("start-container").style.display = "none";
-  document.getElementById("quiz-container").style.display = "block";
+  document.getElementById("welcome-screen").style.display = "none";
+  document.getElementById("game-container").style.display = "block";
+
   const data = await fetchData();
   questions = data.results;
   displayQuestionAndAnswers();
+  
 }
-//should store data for our quiz questions and answers
 
 async function fetchData() {
   try {
-    const response = await fetch(
-      "https://opentdb.com/api.php?amount=50&type=multiple",
-    );
+    const categorySelect = document.getElementById("category-select");
+    const categoryID = categorySelect.value;
+    
+    let apiUrl = `https://opentdb.com/api.php?amount=10&type=multiple`;
+    if (categoryID) {
+      apiUrl += `&category=${categoryID}`;
+    }
+    const response = await fetch(apiUrl);
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
     const data = await response.json();
     console.log(data);
-    //he.decode(data);
     return data;
   } catch (error) {
     console.error("There was a problem with the fetch operation:", error);
@@ -44,9 +55,8 @@ function displayQuestionAndAnswers() {
     current_question.incorrect_answers,
     current_question.correct_answer,
   ];
-  //needed to look this flat() method up to get one single array since concatenating wasnt working
   current_answers = current_answers.flat(Infinity);
-  current_answers.sort(() => Math.random() - 0.5); // Shuffle the answers
+  current_answers.sort(() => Math.random() - 0.5);
 
   let question = document.querySelector(".question h2");
   let answerButtons = document.querySelectorAll(".answer-btn");
@@ -62,9 +72,12 @@ function displayQuestionAndAnswers() {
     //on click if the answer is correct change the background color to green and turn off the buttons
     btn.onclick = () => {
       if (current_answers[index] === current_question.correct_answer) {
+        correct_answer_noise.play();
         clearInterval(timerInterval);
         btn.style.backgroundColor = "green";
-        score = score + 10;
+        streak++;
+        score += 10 * streak;
+        questionsAnswered += 1;
         document.querySelectorAll(".answer-btn").forEach((button) => {
           button.disabled = true;
         });
@@ -84,18 +97,40 @@ function displayQuestionAndAnswers() {
         document.querySelectorAll(".answer-btn").forEach((button) => {
           button.disabled = true;
         });
+        wrong_answer_noise.play();
+        streak = 0;
         clearInterval(timerInterval);
         btn.style.backgroundColor = "red";
-        lives--;
 
-        if (lives === 0) {
+        //if the user clicks the wrong answer display the correct answer in green
+        answerButtons.forEach((button) => {
+          if (button.innerHTML === current_question.correct_answer) {
+            button.style.backgroundColor = "green";
+          }
+        });
+        
+        lives--;
+        //preload the page with 3 lives at init()
+        //when lives are 2 load the 2 hearts
+        if(lives === 2){
+            const imageElement = document.getElementById("lives");
+            imageElement.src = "Images/HeartFrame2.png";
+        }
+        //when lives are 1 load 1 heart 
+        if(lives ===1){
+            const imageElement = document.getElementById("lives");
+            imageElement.src = "Images/HeartFrame3.png";
+        }
+         document.getElementById("lives").textContent = lives;
+         if (lives <= 0) {
           btn.disabled = true;
           //stop the lives counter at 0;
           lives = 0;
-          gameOver();
-        }
+           gameOver();
+           return;
+          }
 
-        document.getElementById("lives").textContent = lives;
+
         //wait 2 seconds go to the next question reset the button colors and then go to the next question
         setTimeout(() => {
           document.querySelectorAll(".answer-btn").forEach((button) => {
@@ -118,7 +153,25 @@ function gameOver() {
   answerButtons.forEach((btn) => {
     btn.disabled = true;
   });
-  window.location.href = "endScreen.html";
+        document.getElementById("game-over-container").style.display = "block";
+        document.getElementById("game-container").style.display = "none";
+
+    let highScore = localStorage.getItem("highScore") || 0;
+
+
+    //if the score is higher than the previous high score set the new highscore in local storage and update the high score variable
+    if (score > highScore) {
+      localStorage.setItem("highScore", score);
+      highScore = score;
+      document.getElementById("final-score").textContent = `Final Score: ${score}`;
+    document.getElementById("questions-correct").textContent = `Questions Correct: ${questionsAnswered}`;
+    document.getElementById("high-score").textContent = `High Score: ${highScore}` + " New High Score!";
+    }else{
+      document.getElementById("final-score").textContent = `Final Score: ${score}`;
+    document.getElementById("questions-correct").textContent = `Questions Correct: ${questionsAnswered}`;
+    document.getElementById("high-score").textContent = `Highest Score: ${highScore}`;
+    }
+    
 }
 
 /*Start the timer for each question at 15 seconds update time remaining dynamically
@@ -135,11 +188,12 @@ function startTimer() {
       clearInterval(timerInterval);
       lives--;
       document.getElementById("lives").textContent = lives;
+      if (lives === 0) {
+        gameOver();
+        return;
+      }
       questionIndex++;
       displayQuestionAndAnswers();
-    }
-    if (lives === 0) {
-      gameOver();
     }
   }, 1000);
 }
