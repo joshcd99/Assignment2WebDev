@@ -2,9 +2,11 @@
    Global State
    Tracks the current game session: score, lives, question progress,
    and answer streak for the bonus multiplier.
-   Imports from streak.js (modules)
    ============================================================= */
 import { streakImage } from './streak.js';
+import { fetchQuestions } from './data-manager.js';
+import { removeHeart, markDot, runGameIntro, transitionToGameOver, updateScore } from './ui-controller.js';
+
 let score = 0;
 let lives = 3;
 let questionIndex = 0;
@@ -43,7 +45,7 @@ document.addEventListener("keydown", (e) => {
     const restartBtn = document.getElementById("restart-btn");
     //if (playBtn && playBtn.offsetParent !== null) {
       //playBtn.click();
-    //} 
+    //}
     // else
     if (restartBtn && restartBtn.offsetParent !== null) {
       restartBtn.click();
@@ -55,22 +57,6 @@ document.addEventListener("keydown", (e) => {
    Helper Functions
    Small utilities used across multiple game states.
    ============================================================= */
-
-// Removes the last heart icon from the lives display
-function removeHeart() {
-  const hearts = document.querySelectorAll(".heart");
-  if (hearts.length > 0) {
-    hearts[hearts.length - 1].remove();
-  }
-}
-
-// Updates a progress dot to show correct (green) or wrong (red)
-function markDot(index, correct) {
-  let dots = document.querySelectorAll(".progress-dot");
-  if (dots[index]) {
-    dots[index].classList.add(correct ? "correct" : "wrong");
-  }
-}
 
 // Advances to the next question, or ends the game if all questions answered
 function nextQuestion() {
@@ -86,16 +72,18 @@ function nextQuestion() {
    initQuiz()
    Entry point when the player clicks PLAY. Handles:
    1. Setting lives based on difficulty selection
-   2. Animating the logo from the home screen into the top bar
-   3. Running a 3-2-1 countdown before the first question
-   4. Fetching questions from the API (started early, awaited later)
+   2. Delegating the intro animation and countdown to ui-controller
+   3. Fetching questions from the API (started early, awaited later)
    ============================================================= */
 async function initQuiz() {
+  // Read user selections from the DOM
+  const categoryId = document.getElementById("category-select").value;
+  const difficulty = document.getElementById("difficulty-select").value;
+
   // Start the API fetch immediately so data loads during the countdown
-  const dataPromise = fetchData();
+  const dataPromise = fetchQuestions(categoryId, difficulty);
 
   // Set lives based on selected difficulty
-  const difficulty = document.getElementById("difficulty-select").value;
   if (difficulty === "easy") {
     lives = 5;
   } else if (difficulty === "hard") {
@@ -104,112 +92,13 @@ async function initQuiz() {
     lives = 4;
   }
 
-  // Dynamically generate heart icons to match the number of lives
-  const livesContainer = document.getElementById("lives-container");
-  livesContainer.innerHTML = '<span class="sr-only">Lives remaining:</span> ';
-  for (let i = 0; i < lives; i++) {
-    const heart = document.createElement("img");
-    heart.className = "heart";
-    heart.src = "Images/heart.png";
-    heart.alt = "Life";
-    livesContainer.appendChild(heart);
-  }
-
-  /* --- Logo animation: moves the home screen logo into the top bar --- */
-
-  // Capture logo position before any layout changes happen
-  const logo = document.querySelector(".title");
-  const logoRect = logo.getBoundingClientRect();
-
-  // Move logo out of its container into body so it stays visible during transition
-  document.body.appendChild(logo);
-
-  // Pin logo at its current position using fixed positioning
-  logo.style.position = "fixed";
-  logo.style.left = logoRect.left + "px";
-  logo.style.top = logoRect.top + "px";
-  logo.style.width = logoRect.width + "px";
-  logo.style.height = logoRect.height + "px";
-  logo.style.zIndex = "100";
-
-  // Switch from welcome screen to game layout
-  document.getElementById("welcome-screen").style.display = "none";
-  document.querySelector("header").style.display = "none";
-  document.querySelector(".overall_page").style.padding = "0";
-  document.querySelector(".overall_page").style.border = "none";
-  document.querySelector(".overall_page").style.margin = "0";
-  document.querySelector(".question-banner").style.display = "none";
-  document.querySelector(".answers").style.display = "none";
-  document.getElementById("game-container").style.display = "flex";
-
-  // Calculate where the top bar logo sits, then animate toward it
-  const topBarLogo = document.querySelector(".top-bar-logo");
-  const targetRect = topBarLogo.getBoundingClientRect();
-
-  // Force a reflow so the CSS transition triggers from the current position
-  logo.offsetHeight;
-  logo.classList.add("title-animating");
-  logo.style.left = targetRect.left + "px";
-  logo.style.top = targetRect.top + "px";
-  logo.style.width = targetRect.width + "px";
-  logo.style.height = targetRect.height + "px";
-
-  /* --- Countdown: 3, 2, 1 before the first question --- */
-  const overlay = document.createElement("div");
-  overlay.id = "countdown-overlay";
-  document.getElementById("game-container").appendChild(overlay);
-
-  for (let i = 3; i >= 1; i--) {
-    overlay.textContent = i;
-    await new Promise(r => setTimeout(r, 1000));
-  }
-
-  // Swap: reveal the real top bar logo and clean up the animated one
-  topBarLogo.style.visibility = "";
-  logo.remove();
-  overlay.remove();
-  document.querySelector(".question-banner").style.display = "";
-  document.querySelector(".answers").style.display = "";
+  // Run the logo animation and 3-2-1 countdown
+  await runGameIntro(lives);
 
   // Await the API data that was fetched during the countdown
   const data = await dataPromise;
   questions = data.results;
   displayQuestionAndAnswers();
-}
-
-/* =============================================================
-   fetchData()
-   Fetches trivia questions from the Open Trivia DB API.
-   Builds the URL with optional category and difficulty filters.
-   Falls back to a local JSON file if the API is unavailable.
-   ============================================================= */
-async function fetchData() {
-  try {
-    const categorySelect = document.getElementById("category-select");
-    const categoryID = categorySelect.value;
-
-    let apiUrl = `https://opentdb.com/api.php?amount=10&type=multiple`;
-    if (categoryID) {
-      apiUrl += `&category=${categoryID}`;
-    }
-    const difficultySelect = document.getElementById("difficulty-select").value;
-    if (difficultySelect) {
-      apiUrl += `&difficulty=${difficultySelect}`;
-    }
-    const response = await fetch(apiUrl);
-
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    // If the API fails (rate limit, network error), load fallback questions
-    console.error("API fetch failed, loading fallback questions:", error);
-    const fallback = await fetch("triviaAPI.json");
-    const data = await fallback.json();
-    return data;
-  }
 }
 
 /* =============================================================
@@ -257,7 +146,7 @@ function displayQuestionAndAnswers() {
         document.querySelectorAll(".answer-btn").forEach((button) => {
           button.disabled = true;
         });
-        document.getElementById("score").textContent = score;
+        updateScore(score);
         markDot(questionIndex, true);
 
         // Wait 2 seconds to show feedback, then advance
@@ -276,7 +165,7 @@ function displayQuestionAndAnswers() {
         });
         wrong_answer_noise.play();
         streak = 0;
-        //Remove the streak gif if question answered wrong 
+        //Remove the streak gif if question answered wrong
         streakImage(streak);
         clearInterval(timerInterval);
         btn.style.backgroundColor = "red";
@@ -318,44 +207,11 @@ function displayQuestionAndAnswers() {
 
 /* =============================================================
    gameOver()
-   Transitions to the end screen. Shows win or loss message based
-   on remaining lives. Updates high score in localStorage if the
-   current score is a new record.
+   Delegates to ui-controller for the screen transition and
+   high score display.
    ============================================================= */
 function gameOver() {
-  let answerButtons = document.querySelectorAll(".answer-btn");
-  answerButtons.forEach((btn) => {
-    btn.disabled = true;
-  });
-
-  // Hide game and welcome screens, show game over screen
-  document.getElementById("welcome-screen").style.display = "none";
-  document.querySelector("header").style.display = "none";
-  document.getElementById("game-over-container").style.display = "flex";
-  document.getElementById("game-container").style.display = "none";
-
-  // Display win or loss heading based on remaining lives
-  if (lives > 0) {
-    document.getElementById("game-over-heading").textContent = "You Win!";
-    document.getElementById("game-over-heading").style.color = "green";
-  } else {
-    document.getElementById("game-over-heading").textContent = "Game Over!";
-    document.getElementById("game-over-heading").style.color = "red";
-  }
-
-  // Check and update high score using localStorage for persistence
-  let highScore = localStorage.getItem("highScore") || 0;
-
-  document.getElementById("final-score").textContent = `Score: ${score}`;
-  document.getElementById("questions-correct").textContent = `Correct Answers: ${questionsAnswered}`;
-
-  if (score > highScore) {
-    localStorage.setItem("highScore", score);
-    highScore = score;
-    document.getElementById("high-score").textContent = `Best Score: ${highScore} - New Record!`;
-  } else {
-    document.getElementById("high-score").textContent = `Best Score: ${highScore}`;
-  }
+  transitionToGameOver(lives, score, questionsAnswered);
 }
 
 /* =============================================================

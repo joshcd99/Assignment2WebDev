@@ -1,3 +1,10 @@
+/**
+ * @description Displays or removes the streak GIF in the score container based on
+ *              the current answer streak count. Shows the GIF when streak exceeds 1,
+ *              removes all streak images otherwise.
+ * @param {number} streak - The current consecutive correct answer streak count
+ * @returns {void}
+ */
 export function streakImage(streak){
 
     //get ID for current Streak to see if it will be displayed
