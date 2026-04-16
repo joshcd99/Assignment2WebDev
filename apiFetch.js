@@ -1,9 +1,8 @@
-/* =============================================================
-   fetchData()
-   Fetches trivia questions from the Open Trivia DB API.
-   Builds the URL with optional category and difficulty filters.
-   Falls back to a local JSON file if the API is unavailable.
-   ============================================================= */
+/**
+ * Fetches trivia questions from the Open Trivia Database.
+ * Implements a 5-second cooldown and falls back to a local JSON file if the API fails.
+ * @returns {Promise<Object>} A promise that resolves to the trivia question data.
+ */
 export async function fetchData() {
   try {
     // --- THE FIX: 5-Second Cooldown Enforcer ---
