@@ -9,6 +9,8 @@ What does each file do? One is a generic script (script.js) that we included in 
 
 Where are responsibilities mixed together? Responsibilities are completely mixed together inside script.js. That exact same file is responsible for grabbing the trivia questions from the API, calculating the game logic, and manually updating the visual HTML elements all at the same time.
 
+![Current Architecture Diagram](current.png)
+
 
 
 b)
@@ -34,7 +36,7 @@ Responsibility: This module handles the logic and the image for the bonus streak
 
 streakImage(): Injects or removes the streak GIF depending on how many questions were answered correctly in a row.
 
-Module 4: script.js
+Kept: script.js
 Responsibility: This is the main file that keeps track of the game state and tells the other modules when to run.
 Refactor Purpose: Renamed functions and variables to be more descriptive so it's easier to read now that the code is split up.
 
@@ -43,6 +45,8 @@ score, lives, and questionIndex: The main variables that track the player's prog
 initQuiz(): The starting function that sets up the game and begins the countdown.
 
 displayQuestionAndAnswers(): Shows the current question and handles the shuffled answer buttons
+
+![Current Architecture Diagram](proposed_modular_changes.png)
 
 Task2)
 
