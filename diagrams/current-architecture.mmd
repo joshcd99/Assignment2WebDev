@@ -1,0 +1,24 @@
+graph TD
+    HTML["index.html<br/><i>type=module script tag</i>"]
+    CSS["style.css<br/><i>551 lines</i>"]
+    SCRIPT["script.js<br/><i>401 lines — monolith</i>"]
+    STREAK["streak.js<br/><i>23 lines</i>"]
+
+    HTML --> CSS
+    HTML --> SCRIPT
+    SCRIPT --> STREAK
+
+    subgraph "script.js responsibilities"
+        direction TB
+        S1["Global State<br/>score, lives, streak, questions"]
+        S2["API Data Fetching<br/>fetchData()"]
+        S3["DOM Manipulation<br/>removeHeart(), markDot()"]
+        S4["Logo Animation &amp; Countdown<br/>initQuiz()"]
+        S5["Question Rendering<br/>displayQuestionAndAnswers()"]
+        S6["Timer Logic<br/>startTimer()"]
+        S7["Game Over &amp; High Score<br/>gameOver()"]
+        S8["Keyboard Controls<br/>keydown listener"]
+        S9["Audio Playback<br/>correct/wrong/gameover sounds"]
+    end
+
+    SCRIPT --- S1
