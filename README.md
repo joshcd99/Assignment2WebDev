@@ -17,7 +17,7 @@
 - **Timer logic + game state**: `startTimer()` manages both the visual countdown (text content updates, CSS `.timer-warning` class) and game state side effects (decrementing lives, calling `removeHeart()`, triggering `gameOver()`)
 - **Screen transitions scattered**: DOM show/hide logic for switching between welcome, game, and game-over screens is split across `initQuiz()` (lines 136-143) and `gameOver()` (lines 332-335)
 
-![Pre-Refactor Architecture](./diagrams/current-architecture.png)
+<img width="5404" height="848" alt="mermaid-diagram-2026-04-16-095310" src="https://github.com/user-attachments/assets/8b13f197-712b-4525-bce6-21ae9b905689" />
 
 ### Proposed Modular Design (Post-Refactor)
 
@@ -34,7 +34,7 @@
 
 2. **`ui-controller.js`** — Extracted `removeHeart()`, `markDot()`, the entire logo animation/countdown/heart generation sequence (from `initQuiz()`), and the full game-over screen transition/high score logic (from `gameOver()`). These became `runGameIntro(lives)` and `transitionToGameOver(lives, score, questionsAnswered)` respectively. Also added `updateScore(score)` to replace scattered `getElementById` calls.
 
-![Post-Refactor Architecture](./diagrams/proposed-architecture.png)
+<img width="3999" height="1104" alt="mermaid-diagram-2026-04-16-095342" src="https://github.com/user-attachments/assets/5d74b208-a354-48c8-9751-b15c998ab9a6" />
 
 ---
 
