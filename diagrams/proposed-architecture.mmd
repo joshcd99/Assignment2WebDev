@@ -1,0 +1,33 @@
+graph TD
+    HTML["index.html<br/><i>type=module script tag</i>"]
+    CSS["style.css<br/><i>551 lines</i>"]
+
+    SCRIPT["script.js — 258 lines<br/><i>Game state &amp; orchestration</i>"]
+    DATA["data-manager.js — 38 lines<br/><i>API data fetching</i>"]
+    UI["ui-controller.js — 159 lines<br/><i>DOM manipulation</i>"]
+    STREAK["streak.js — 30 lines<br/><i>Streak GIF display</i>"]
+
+    HTML --> CSS
+    HTML --> SCRIPT
+    SCRIPT --> DATA
+    SCRIPT --> UI
+    SCRIPT --> STREAK
+
+    subgraph "data-manager.js exports"
+        D1["fetchQuestions(categoryId, difficulty)"]
+    end
+    DATA --- D1
+
+    subgraph "ui-controller.js exports"
+        U1["removeHeart()"]
+        U2["markDot(index, correct)"]
+        U3["runGameIntro(lives)"]
+        U4["transitionToGameOver(lives, score, questionsAnswered)"]
+        U5["updateScore(score)"]
+    end
+    UI --- U1
+
+    subgraph "streak.js exports"
+        ST1["streakImage(streak)"]
+    end
+    STREAK --- ST1
