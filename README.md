@@ -49,6 +49,29 @@ displayQuestionAndAnswers(): Shows the current question and handles the shuffled
 ![Current Architecture Diagram](proposed.png)
 
 Task2)
+Refactored Module 1: apifetch.js
+
+Purpose: This module isolates the data-fetching logic for Trivia Blast, specifically handling requests to the Open Trivia DB API and managing rate limits.
+
+Changes Made:
+
+Extracted the fetchData() logic entirely out of the monolithic script.js file.
+
+Used ES6 export syntax to make fetchData available as a dependency to the main controller.
+
+Implemented a 5-second cooldown and a local JSON fallback. This guarantees functional equivalence by ensuring the game continues to load questions and the user experience remains unchanged even if the external API times out or blocks the IP.
+
+Refactored Module 2: Ui_logic.js
+
+Purpose: This module handles direct DOM manipulation and visual updates for the game's dashboard, keeping UI concerns separate from core game state logic.
+
+Changes Made:
+
+Extracted the removeHeart() and markDot() functions from script.js and moved the logic into this dedicated file.
+
+Used proper ES6 export syntax on these functions and brought them into script.js using import statements.
+
+Consolidated repetitive CSS styling for the progress dots into the single markDot() function. This extracted and simplified the logic while ensuring all visual features remained functionally identical and no features were broken during the move.
 
 Task 3) 
 Switching our Trivia project to a modular design really showed me how messy my script.js file actually was. I didn't fully realize it until I started trying to pull the logic apart and move different functionalities into their own files. Refactoring taught me that when you keep everything in one place, it’s a lot harder to change one part of the game without worrying about breaking something else. Now that the code is split up into separate modules, the project feels way more organized, and it is much easier to find exactly where certain functions live instead of scrolling through one massive file.
